@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="Fahr">#615EC6</color>
+    <color name="rise">#BCF6FF</color>
+    <color name="duhr">#FDFFB9</color>
+    <color name="asr">#FCDAAA</color>
+    <color name="maghrib">#D55A79</color>
+    <color name="Ishaa">#44376D</color>
+    <color name="set">#B73C7D</color>
+    <color name="Imsak">#37204C</color>
+    <color name="Imsak_con">#7FFFD4</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+</resources>
