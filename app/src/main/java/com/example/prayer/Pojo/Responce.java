@@ -5,16 +5,19 @@ import java.util.List;
 
 @SuppressWarnings("all")
 public class Responce {
-    private final int code;
+    private  int code;
 
-    private final String status;
+    private  String status;
 
-    private final Data data;
+    private Data data;
 
     public Responce(int code, String status, Data data) {
         this.code = code;
         this.status = status;
         this.data = data;
+    }
+
+    public Responce() {
     }
 
     public int getCode() {

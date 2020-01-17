@@ -1,6 +1,7 @@
 package com.example.prayer.data;
 
 import com.example.prayer.Pojo.Responce;
+import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 import io.reactivex.Flowable;
 import okhttp3.OkHttpClient;
@@ -26,7 +27,7 @@ public class ResponceClient {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BaseUrl)
                 .client(okHttpClient)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         prayerInterface = retrofit.create(PrayerInterface.class);

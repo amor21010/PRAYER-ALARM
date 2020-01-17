@@ -12,8 +12,12 @@ import com.example.prayer.data.ResponceClient;
 
 import java.util.List;
 
+import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableSingleObserver;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subscribers.DisposableSubscriber;
 import retrofit2.Call;
@@ -21,21 +25,29 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class HomeViewModel extends ViewModel {
-    private final String  TAG="onFailure";
-    public MutableLiveData<Responce> mResponse=new MutableLiveData<>();
+    private final String TAG = "onFailure";
+    public MutableLiveData<Responce> mResponse = new MutableLiveData<>();
 
-    @SuppressLint("CheckResult")
-    public void getData(String City){
-        ResponceClient.getINICTANCE().getData(City).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableSubscriber<Responce>() {
+
+    public void getData(String City) {
+        ResponceClient.getINICTANCE().getData(City)
+                .toObservable()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Responce>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
                     @Override
                     public void onNext(Responce responce) {
                         mResponse.setValue(responce);
                     }
 
                     @Override
-                    public void onError(Throwable t) {
-
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "onError: ", e);
                     }
 
                     @Override
@@ -43,7 +55,5 @@ public class HomeViewModel extends ViewModel {
 
                     }
                 });
-
-
     }
 }
