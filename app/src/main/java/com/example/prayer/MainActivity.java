@@ -32,21 +32,53 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
-
-        if (savedInstanceState != null) {
-            Log.d(TAG, "onCreate: Restore the fragment's instance");
-            //Restore the fragment's instance
-            fragment = getSupportFragmentManager().getFragment(savedInstanceState, "HomeFragment");
-        }
+//
+//        if (savedInstanceState != null) {
+//            Log.d(TAG, "onCreate: Restore the fragment's instance");
+//            //Restore the fragment's instance
+//            fragment = getSupportFragmentManager().getFragment(savedInstanceState, "HomeFragment");
+//        }
+//
+////
+//        if (ContextCompat.checkSelfPermission(MainActivity.this,
+//                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION)) {
+//                ActivityCompat.requestPermissions(MainActivity.this,
+//                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+//            } else {
+//                ActivityCompat.requestPermissions(MainActivity.this,
+//                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+//            }
+//        }
     }
 
-    @Override
-    protected void onSaveInstanceState(@NotNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Log.d(TAG, "onSaveInstanceState: save the fragment's instance");
+//    @Override
+//    protected void onSaveInstanceState(@NotNull Bundle outState) {
+//        super.onSaveInstanceState(outState);
+//        Log.d(TAG, "onSaveInstanceState: save the fragment's instance");
+//
+//        //Save the fragment's instance
+//        getSupportFragmentManager().putFragment(outState, "HomeFragment", fragment);
+//    }
 
-        //Save the fragment's instance
-        getSupportFragmentManager().putFragment(outState, "HomeFragment", fragment);
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//                                           int[] grantResults) {
+//        switch (requestCode) {
+//            case 1: {
+//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    if (ContextCompat.checkSelfPermission(MainActivity.this,
+//                            Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+//                        Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+//                    }
+//                } else {
+//                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+//                }
+//                return;
+//            }
+//        }
+//    }
+
 
 }

@@ -26,7 +26,7 @@ import retrofit2.Response;
 
 public class HomeViewModel extends ViewModel {
     private final String TAG = "onFailure";
-    public MutableLiveData<Responce> mResponse = new MutableLiveData<>();
+    MutableLiveData<Responce> mResponse = new MutableLiveData<>();
 
 
     public void getData(String City) {
@@ -48,6 +48,7 @@ public class HomeViewModel extends ViewModel {
                     @Override
                     public void onError(Throwable e) {
                         Log.e(TAG, "onError: ", e);
+                        mResponse.setValue(null);
                     }
 
                     @Override

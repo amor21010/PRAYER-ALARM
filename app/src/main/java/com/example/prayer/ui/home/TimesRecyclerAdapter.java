@@ -2,6 +2,9 @@ package com.example.prayer.ui.home;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +30,9 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
         return new TimesVH(LayoutInflater.from(parent.getContext()).inflate(R.layout.pray_item, parent, false));
     }
 
-    @SuppressLint("ResourceAsColor")
+    //String TAG = "wwwww";
+
+
     @Override
     public void onBindViewHolder(@NonNull TimesVH holder, int position) {
 
@@ -43,11 +48,10 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
         holder.PrayTime.setText(pray.getTime());
         holder.PrayerName.setText(pray.getName());
 
-        if (x > 10f)
-            holder.PrayerName.setTextColor(pray.getTextCOLOR());
-        if (x > 30f)
-            holder.PrayTime.setTextColor(pray.getTextCOLOR());
-        else holder.PrayTime.setTextColor(Color.parseColor("#000000"));
+
+        holder.PrayerName.setTextColor(pray.getTextCOLOR());
+        holder.dots.setTextColor(pray.getTextCOLOR());
+        holder.PrayTime.setTextColor(pray.getTextCOLOR());
 
 
         holder.left.setLayoutParams(new LinearLayout.LayoutParams(
@@ -58,7 +62,15 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
 
 
         holder.left.setBackgroundColor(pray.getBackgroundCOLOR());
-        if (x<30) holder.right.setBackgroundColor(Color.parseColor("#ff0000"));
+
+        if (x <45){
+            AnimationDrawable animationDrawable= (AnimationDrawable) holder.right.getBackground();
+            animationDrawable.setEnterFadeDuration(1000);
+            animationDrawable.setExitFadeDuration(2000);
+            animationDrawable.start();
+        }else {
+            holder.right.setBackgroundColor(Color.parseColor("#ffffff"));
+        }
 
 
     }
@@ -75,13 +87,14 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
     }
 
     class TimesVH extends RecyclerView.ViewHolder {
-        TextView PrayerName, PrayTime;
+        TextView PrayerName, PrayTime, dots;
         View left, right;
 
         TimesVH(@NonNull View itemView) {
             super(itemView);
             PrayerName = itemView.findViewById(R.id.prayName);
             PrayTime = itemView.findViewById(R.id.prayTime);
+            dots = itemView.findViewById(R.id.dots);
 
 
             left = itemView.findViewById(R.id.left);
