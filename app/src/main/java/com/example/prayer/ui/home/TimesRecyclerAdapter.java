@@ -1,17 +1,18 @@
 package com.example.prayer.ui.home;
 
-import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.prayer.Pojo.Pray;
@@ -22,7 +23,18 @@ import java.util.List;
 
 public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdapter.TimesVH> {
     private List<Pray> TimesList = new ArrayList<>();
-//    int COLOR;
+    private int[] backgroundColor = {
+            R.color.Fahr
+            , R.color.rise
+            , R.color.duhr
+            , R.color.asr
+            , R.color.set
+            , R.color.maghrib
+            , R.color.Ishaa
+            , R.color.Imsak};
+
+    private Context context;
+
 
     @NonNull
     @Override
@@ -39,6 +51,9 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
 //         holder.left.setBackgroundColor(COLOR);
 
 
+        if (position == 1 || position == 4 || position == 7)
+            holder.cardView.setVisibility(View.GONE);
+
         Pray pray = TimesList.get(position);
 
 
@@ -49,30 +64,29 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
         holder.PrayerName.setText(pray.getName());
 
 
-        holder.PrayerName.setTextColor(pray.getTextCOLOR());
-        holder.dots.setTextColor(pray.getTextCOLOR());
-        holder.PrayTime.setTextColor(pray.getTextCOLOR());
-
-
         holder.left.setLayoutParams(new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, x));
 
         holder.right.setLayoutParams(new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.MATCH_PARENT, 100f - x));
 
+        if (position < backgroundColor.length)
+            holder.left.setBackgroundColor(ContextCompat
+                    .getColor(context, backgroundColor[position]));
 
-        holder.left.setBackgroundColor(pray.getBackgroundCOLOR());
+        if (x < 45) {
 
-        if (x <45){
-            AnimationDrawable animationDrawable= (AnimationDrawable) holder.right.getBackground();
+            holder.right.setBackground(ContextCompat
+                    .getDrawable(context, R.drawable.right_list));
+            AnimationDrawable animationDrawable = (AnimationDrawable) holder.right.getBackground();
             animationDrawable.setEnterFadeDuration(1000);
             animationDrawable.setExitFadeDuration(2000);
             animationDrawable.start();
-        }else {
+
+
+        } else {
             holder.right.setBackgroundColor(Color.parseColor("#ffffff"));
         }
-
-
     }
 
     @Override
@@ -80,23 +94,30 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
         return TimesList.size();
     }
 
-    void setList(List<Pray> TimesList) {
+    void setList(Context context, List<Pray> TimesList) {
         this.TimesList = TimesList;
+        this.context = context;
+
+
 //        this.COLOR=COLOR;
         notifyDataSetChanged();
+
     }
 
+
     class TimesVH extends RecyclerView.ViewHolder {
-        TextView PrayerName, PrayTime, dots;
+        TextView PrayerName, PrayTime;
         View left, right;
+        CheckBox done;
+        CardView cardView;
 
         TimesVH(@NonNull View itemView) {
             super(itemView);
             PrayerName = itemView.findViewById(R.id.prayName);
             PrayTime = itemView.findViewById(R.id.prayTime);
-            dots = itemView.findViewById(R.id.dots);
+            done = itemView.findViewById(R.id.done);
 
-
+            cardView = itemView.findViewById(R.id.done_card);
             left = itemView.findViewById(R.id.left);
             right = itemView.findViewById(R.id.right);
 

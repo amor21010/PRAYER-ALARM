@@ -8,5 +8,5 @@ import retrofit2.http.Query;
 
 public interface PrayerInterface {
     @GET("timingsByAddress")
-    Flowable<Responce> getPrayerTimes(@Query("address") String City);
+    Flowable<Responce> getPrayerTimes(@Query("address") String City, @Query("method") int method);
 }

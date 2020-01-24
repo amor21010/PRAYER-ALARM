@@ -1,94 +1,136 @@
 package com.example.prayer.ui.home;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.graphics.drawable.AnimationDrawable;
-import android.location.Location;
-import android.os.Build;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.prayer.FireStoreDataBase.FireStoreUser;
 import com.example.prayer.Pojo.Pray;
 import com.example.prayer.Pojo.Responce;
 import com.example.prayer.R;
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.doubleclick.PublisherAdRequest;
-import com.google.android.gms.ads.doubleclick.PublisherAdView;
-import com.google.android.gms.location.LocationServices;
+import com.example.prayer.Util.DateOprations;
+import com.example.prayer.ui.AdHandler;
+import com.google.android.gms.ads.AdView;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 
 public class HomeFragment extends Fragment {
-    private TextView Date, Hijri;
+    @BindView(R.id.progress)
+    ProgressBar spinner;
+    @BindView(R.id.adView)
+    AdView mAdView;
+    @BindView(R.id.date)
+    TextView date;
+    @BindView(R.id.hijri)
+    TextView Hijri;
+    @BindView(R.id.next_time)
+    TextView nextTime;
+    @BindView(R.id.date_card)
+    CardView DateCardView;
+    @BindView(R.id.recycler)
+    RecyclerView recyclerView;
+    @BindView(R.id.reload)
+    TextView online;
+
+
     private List<Pray> prayTimes = new ArrayList<>();
-    private String TAG = "onAd";
-    private Boolean isGranted = false;
-    ImageView conneciting;
-    ImageView disconnected;
+    private String TAG = "onAdHome";
+    // private LinearLayout disconnected;
 
 
+    private HomeViewModel homeViewModel;
+
+
+    private TimesRecyclerAdapter adapter;
+    private View root;
+
+
+    private FireStoreUser fireStoreUser;
+    private DateOprations dateOprations;
+
+
+    private String UserID;
+
+    private AdHandler adHandler = new AdHandler();
+
+    private String[] PrayNames = {
+            "Fajr"
+            , "Sun Rise"
+            , "Duhr"
+            , "Asr"
+            , "Sun Set"
+            , "Maghrib"
+            , "Isha"
+            , "Imsak"};
+    private int[] backgroundColor = {
+            R.color.Fahr
+            , R.color.rise
+            , R.color.duhr
+            , R.color.asr
+            , R.color.set
+            , R.color.maghrib
+            , R.color.Ishaa
+            , R.color.Imsak};
+
+
+    @SuppressLint("HardwareIds")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
+        root = inflater.inflate(R.layout.fragment_home, container, false);
+        ButterKnife.bind(this,root);
 
-        HomeViewModel homeViewModel = ViewModelProviders.of(this).get(HomeViewModel.class);
+        homeViewModel = new ViewModelProvider.NewInstanceFactory().create(HomeViewModel.class);
+        dateOprations = new DateOprations();
 
-        final View root = inflater.inflate(R.layout.fragment_home, container, false);
+        adHandler.AdRequest(TAG, HomeFragment.this, mAdView);
 
-        ViewAds(root);
-
-        conneciting = root.findViewById(R.id.image);
-        disconnected = root.findViewById(R.id.image_des);
-
-        Date = root.findViewById(R.id.date);
-        Hijri = root.findViewById(R.id.hijri);
+        UserID = Settings.Secure.getString(root.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 
 
-        AnimationDrawable animationDrawable = (AnimationDrawable) conneciting.getBackground();
-        animationDrawable.setEnterFadeDuration(1000);
-        animationDrawable.setExitFadeDuration(2000);
-        animationDrawable.start();
+        fireStoreUser = new FireStoreUser();
 
-        LogFireBaseToken();
-        homeViewModel.getData("cairo");
-        RecyclerView recyclerView = root.findViewById(R.id.recycler);
-        final TimesRecyclerAdapter adapter = new TimesRecyclerAdapter();
+
+        adapter = new TimesRecyclerAdapter();
         recyclerView.setLayoutManager(new LinearLayoutManager(root.getContext()));
         recyclerView.setNestedScrollingEnabled(false);
         recyclerView.setAdapter(adapter);
-        homeViewModel.mResponse.observe(this, responce -> {
 
-            //set Data To View
-            if (responce == null)
-                disconnected.setVisibility(View.VISIBLE);
-            else {
-                recyclerView.setVisibility(View.VISIBLE);
-                getData2View(root, responce);
-                adapter.setList(prayTimes);
-            }
-            conneciting.setVisibility(View.INVISIBLE);
 
-        });
+        if (prayTimes.size() > 7) {
+            prayTimes.removeAll(prayTimes);
+            adapter.notifyDataSetChanged();
+            homeViewModel.getData();
+
+            homeViewModel.mResponse.observe(getViewLifecycleOwner(), this::setAdapter);
+
+        } else {
+            homeViewModel.getData();
+            homeViewModel.mResponse.observe(getViewLifecycleOwner(), this::setAdapter);
+
+        }
 
 
         return root;
@@ -113,19 +155,41 @@ public class HomeFragment extends Fragment {
     }
 
 
-    private void getData2View(View root, Responce responce) {
+    private void getData2View(Responce responce) {
 
 
-        //get Date Info
+        //get date Info
         String DateText = responce.getData().getDate().getReadable();
         String HijriText = responce.getData().getDate().getHijri().getDate();
 
-        //set Date Info To View
-        Date.setText(DateText);
+        //set date Info To View
+        date.setText(DateText);
         Hijri.setText(HijriText);
 
 
 //get Times
+        List<String> Times = getTimes(responce);
+
+
+        String hhmm = dateOprations.nextPray(Times);
+        Log.d("getCurrentHHmm", "getData2View: " + hhmm);
+
+        for (int i = 0; i < Times.size(); i++) {
+            prayTimes.add(new Pray(Times.get(i), 100, PrayNames[i]));
+        }
+
+
+        for (int i = 0; i < prayTimes.size(); i++) {
+            getLiveProgress(i, prayTimes.get(i).getName());
+        }
+        String Name = prayTimes.get(Times.indexOf(hhmm)).getName();
+        nextTime.setText(Name + " (" + hhmm + ")");
+        DateCardView.setCardBackgroundColor(ContextCompat.getColor(Objects.requireNonNull(HomeFragment.this.getContext()), backgroundColor[Times.indexOf(hhmm)]));
+
+
+    }
+
+    private List<String> getTimes(Responce responce) {
         String fajrTime = responce.getData().getTimings().getFajr();
         String sunRiseTime = responce.getData().getTimings().getSunrise();
         String DuhrTime = responce.getData().getTimings().getDhuhr();
@@ -137,105 +201,65 @@ public class HomeFragment extends Fragment {
 
 //TODO update progress
         //set times to the list
-        prayTimes.add(new Pray("Fajr", fajrTime
-                , ContextCompat.getColor(root.getContext(), R.color.Fahr)
-                , ContextCompat.getColor(root.getContext(), R.color.white), 20));
-        prayTimes.add(new Pray("Sun Rise", sunRiseTime,
-                ContextCompat.getColor(root.getContext(), R.color.rise)
-                , ContextCompat.getColor(root.getContext(), R.color.white), 50));
-        prayTimes.add(new Pray("Duhr", DuhrTime,
-                ContextCompat.getColor(root.getContext(), R.color.duhr)
-                , ContextCompat.getColor(root.getContext(), R.color.white), 10));
-        prayTimes.add(new Pray("Asr", AsrTime,
-                ContextCompat.getColor(root.getContext(), R.color.asr)
-                , ContextCompat.getColor(root.getContext(), R.color.white), 3));
-        prayTimes.add(new Pray("Sun Set", sunSetTime,
-                ContextCompat.getColor(root.getContext(), R.color.maghrib)
-                , ContextCompat.getColor(root.getContext(), R.color.white), 45));
-        prayTimes.add(new Pray("Maghrib", MaghribTime,
-                ContextCompat.getColor(root.getContext(), R.color.set)
-                , ContextCompat.getColor(root.getContext(), R.color.white), 45.5f));
-        prayTimes.add(new Pray("Isha", IshaTime,
-                ContextCompat.getColor(root.getContext(), R.color.Ishaa)
-                , ContextCompat.getColor(root.getContext(), R.color.white), 30));
-        prayTimes.add(new Pray("Imsak", IImsakTime,
-                ContextCompat.getColor(root.getContext(), R.color.Imsak)
-                , ContextCompat.getColor(root.getContext(), R.color.white), 50));
-
+        return new ArrayList<>(Arrays.asList(fajrTime, sunRiseTime, DuhrTime, AsrTime, sunSetTime, MaghribTime, IshaTime, IImsakTime));
 
     }
 
 
-    private void ViewAds(View root) {
-        PublisherAdView mAdView;
+    private void setAdapter(Responce responce) {
+        if (responce == null)
+            online.setVisibility(View.VISIBLE);
 
-        MobileAds.initialize(root.getContext(), getString(R.string.app_ad_unit_id));
+        else {
+            recyclerView.setVisibility(View.VISIBLE);
+            if (prayTimes.size() == 0)
+                getData2View(responce);
 
-        mAdView = root.findViewById(R.id.adView);
+            adapter.setList(root.getContext(), prayTimes);
+            DateCardView.setVisibility(View.VISIBLE);
+            online.setVisibility(View.GONE);
 
-
-        ActivityCompat.requestPermissions(Objects.requireNonNull(HomeFragment.this.getActivity()),
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                1);
-        if (isGranted) {
-            Location location = LocationServices
-                    .getFusedLocationProviderClient(Objects.requireNonNull(HomeFragment.this.getActivity()))
-                    .getLastLocation().getResult();
-            Log.d(TAG, "ViewAds: " + location);
-            PublisherAdRequest adRequest = new PublisherAdRequest.Builder().setLocation(location).build();
-            mAdView.loadAd(adRequest);
 
         }
-        mAdView.setAdListener(new AdListener() {
-            @Override
-            public void onAdLoaded() {
-                Log.d(TAG, "onAdLoaded: ");
-            }
+        spinner.setVisibility(View.GONE);
 
-            @Override
-            public void onAdFailedToLoad(int errorCode) {
-                Log.d(TAG, "onAdFailedToLoad: " + errorCode);
-            }
+        // conneciting.setVisibility(View.INVISIBLE);
+    }
 
-            @Override
-            public void onAdOpened() {
-                // Code to be executed when an ad opens an overlay that
-                // covers the screen.
-            }
 
-            @Override
-            public void onAdClicked() {
-                // Code to be executed when the user clicks on an ad.
-            }
+    private void getLiveProgress(int index, String Name) {
 
-            @Override
-            public void onAdLeftApplication() {
-                // Code to be executed when the user has left the app.
-            }
+        String prayTime = prayTimes.get(index).getTime();
 
-            @Override
-            public void onAdClosed() {
-                // Code to be executed when the user is about to return
-                // to the app after tapping on an ad.
+
+        fireStoreUser.getStartTime(UserID).observe(HomeFragment.this, startDay ->
+
+        {
+            if (startDay != null) {
+
+                fireStoreUser.getTimesDone(UserID, Name).observe(HomeFragment.this, timesDone -> {
+                    if (timesDone != null) {
+                        float porgress = dateOprations.getProgress(startDay, timesDone);
+
+                        prayTimes.set(index, new Pray(prayTime, porgress, Name));
+                        Log.d(TAG, "getLiveProgress: Times = " + timesDone);
+                        Log.d(TAG, "getLiveProgress: StartDay = " + startDay);
+                        adapter.notifyItemChanged(index);
+                    } else {
+                        prayTimes.set(index, new Pray(prayTime, 100, Name));
+                        adapter.notifyItemChanged(index);
+
+
+                    }
+                });
             }
         });
+
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        if (requestCode == 1) {// If request is cancelled, the result arrays are empty.
-            if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                isGranted = true;
-                Toast.makeText(HomeFragment.this.getContext(), "Permission granted", Toast.LENGTH_SHORT).show();
+    private void getTime() {
 
-            } else {
-
-
-                Toast.makeText(HomeFragment.this.getContext(), "Permission denied", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
+
 
 }
