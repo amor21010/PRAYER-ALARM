@@ -17,5 +17,6 @@
     <string name="disconnected">disconnected</string>
     <string name="you_are_offline">you Are Offline .. Go Online?</string>
     <string name="hijri">Hijri</string>
+    <string name="some_name">SOME NAME :</string>
 
 </resources>

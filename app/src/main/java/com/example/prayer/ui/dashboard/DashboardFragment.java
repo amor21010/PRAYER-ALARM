@@ -11,16 +11,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.prayer.FireStoreDataBase.FireStoreUser;
 import com.example.prayer.R;
-
 import com.example.prayer.ui.AdHandler;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-
-import java.util.Map;
 
 public class DashboardFragment extends Fragment {
     private String TAG = "OnAdDash";
@@ -31,12 +28,12 @@ public class DashboardFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         dashboardViewModel =
-                ViewModelProviders.of(this).get(DashboardViewModel.class);
+                new ViewModelProvider.NewInstanceFactory().create(DashboardViewModel.class);
         root = inflater.inflate(R.layout.fragment_dashboard, container, false);
         TextView textView = root.findViewById(R.id.text_dashboard);
         //dashboardViewModel.getText().observe(this, s -> textView.setText(s));
         ViewAds();
-        String userID = String.valueOf(getUserInfo().get("userID"));
+        String userID = getUserInfo();
         Log.d(TAG, "onCreateView: " + userID);
         if (userID != null)
             textView.setText(userID);
@@ -57,11 +54,11 @@ public class DashboardFragment extends Fragment {
     }
 
 
-    private Map<String, Object> getUserInfo() {
+    private String getUserInfo() {
 
         @SuppressLint("HardwareIds") String userID = Settings.Secure.getString(root.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
         FireStoreUser fireStoreUser = new FireStoreUser();
-        return fireStoreUser.CreateDataDocument(userID);
+        return String.valueOf(fireStoreUser.CreateDataDocument(userID).get("userID"));
     }
 
 

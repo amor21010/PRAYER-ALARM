@@ -25,6 +25,7 @@ import com.example.prayer.R;
 import com.example.prayer.Util.DateOprations;
 import com.example.prayer.ui.AdHandler;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnItemClicked {
     @BindView(R.id.progress)
     ProgressBar spinner;
     @BindView(R.id.adView)
@@ -89,8 +90,8 @@ public class HomeFragment extends Fragment {
             , R.color.rise
             , R.color.duhr
             , R.color.asr
-            , R.color.set
             , R.color.maghrib
+            , R.color.set
             , R.color.Ishaa
             , R.color.Imsak};
 
@@ -100,11 +101,13 @@ public class HomeFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
 
         root = inflater.inflate(R.layout.fragment_home, container, false);
-        ButterKnife.bind(this,root);
+        ButterKnife.bind(this, root);
 
         homeViewModel = new ViewModelProvider.NewInstanceFactory().create(HomeViewModel.class);
         dateOprations = new DateOprations();
-
+        MobileAds.initialize(root.getContext(), getString(R.string.app_ad_unit_id));
+        MobileAds.initialize(root.getContext(),
+                getString(R.string.banner_ad_unit_id));
         adHandler.AdRequest(TAG, HomeFragment.this, mAdView);
 
         UserID = Settings.Secure.getString(root.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -136,25 +139,8 @@ public class HomeFragment extends Fragment {
         return root;
     }
 
-    private void LogFireBaseToken() {
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        Log.w(TAG, "getInstanceId failed", task.getException());
-                        return;
-                    }
 
-                    // Get new Instance ID token
-                    String token = Objects.requireNonNull(task.getResult()).getToken();
-
-                    // Log and toast
-
-                    Log.d(TAG, token);
-
-                });
-    }
-
-
+    @SuppressLint("SetTextI18n")
     private void getData2View(Responce responce) {
 
 
@@ -180,11 +166,13 @@ public class HomeFragment extends Fragment {
 
 
         for (int i = 0; i < prayTimes.size(); i++) {
-            getLiveProgress(i, prayTimes.get(i).getName());
+            getLiveProgress(i);
         }
-        String Name = prayTimes.get(Times.indexOf(hhmm)).getName();
+        String Name = prayTimes.get(Times.lastIndexOf(hhmm)).getName();
         nextTime.setText(Name + " (" + hhmm + ")");
-        DateCardView.setCardBackgroundColor(ContextCompat.getColor(Objects.requireNonNull(HomeFragment.this.getContext()), backgroundColor[Times.indexOf(hhmm)]));
+        DateCardView.setCardBackgroundColor(ContextCompat
+                .getColor(Objects.requireNonNull(HomeFragment.this.getContext())
+                        , backgroundColor[Times.lastIndexOf(hhmm)]));
 
 
     }
@@ -215,7 +203,7 @@ public class HomeFragment extends Fragment {
             if (prayTimes.size() == 0)
                 getData2View(responce);
 
-            adapter.setList(root.getContext(), prayTimes);
+            adapter.setInfo(root.getContext(), prayTimes, HomeFragment.this);
             DateCardView.setVisibility(View.VISIBLE);
             online.setVisibility(View.GONE);
 
@@ -227,9 +215,10 @@ public class HomeFragment extends Fragment {
     }
 
 
-    private void getLiveProgress(int index, String Name) {
+    private void getLiveProgress(int index) {
 
         String prayTime = prayTimes.get(index).getTime();
+        String Name = prayTimes.get(index).getName();
 
 
         fireStoreUser.getStartTime(UserID).observe(HomeFragment.this, startDay ->
@@ -248,8 +237,6 @@ public class HomeFragment extends Fragment {
                     } else {
                         prayTimes.set(index, new Pray(prayTime, 100, Name));
                         adapter.notifyItemChanged(index);
-
-
                     }
                 });
             }
@@ -257,9 +244,33 @@ public class HomeFragment extends Fragment {
 
     }
 
-    private void getTime() {
+
+    @Override
+    public void onItemClick(int index) {
+        Log.d("onItemClick", String.valueOf((index)));
+
+        String Name = prayTimes.get(index).getName();
+        Log.d("onItemClick", prayTimes.get(index).getName());
+        fireStoreUser.getStartTime(UserID).observe(HomeFragment.this, startDay ->
+
+        {
+            if (startDay != null) {
+
+                fireStoreUser.getTimesDone(UserID, Name).observe(HomeFragment.this, timesDone -> {
+                    if (timesDone != null) {
+                        float porgress = dateOprations.getProgress(startDay, timesDone);
+                        if (porgress < 100) {
+                            Log.d("onItemClick", "onItemClick: update");
+                            fireStoreUser.markAsDone(UserID, Name);
+                            getLiveProgress(index);
+                        } else {
+                            Log.d("onItemClick", "onItemClick: notUpdate");
+                        }
+                    }
+                });
+            }
+        });
+
 
     }
-
-
 }

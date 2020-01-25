@@ -3,23 +3,30 @@ package com.example.prayer.Util;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
-import com.example.prayer.Pojo.Responce;
-
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 public class DateOprations {
+    public static final String DATE_FORMAT_2 = "MMM DD, yyyy";
 
-    private String CurrentDate = java.text.DateFormat.getDateTimeInstance().format(new Date());
+    @SuppressLint("SimpleDateFormat")
+    public  String getCurrentDate() {
 
+        Date today = Calendar.getInstance().getTime();
+        SimpleDateFormat dmy = new SimpleDateFormat(DATE_FORMAT_2);
+        dmy.setTimeZone(TimeZone.getTimeZone("EET"));
+        String date = dmy.format(today);
+        Log.d("DAYES", "getCurrentDate: " + date);
+        return date;
+    }
 
     @SuppressLint("SimpleDateFormat")
     public float ToDays(String date) {
-        SimpleDateFormat dmy = new SimpleDateFormat("MMM DD, yyyy");
+        SimpleDateFormat dmy = new SimpleDateFormat(DATE_FORMAT_2);
 
         Log.d("DAYES", "ToDays: " + date);
 
@@ -31,7 +38,9 @@ public class DateOprations {
         }
 
 
-        long seconds = newDate.getTime() / 1000;
+        long seconds = 0;
+        seconds = newDate.getTime() / 1000;
+
         long minutes = seconds / 60;
         long hours = minutes / 60;
         Log.d("DAYES", "ToDays: " + date + "=" + (hours / 24));
@@ -40,7 +49,7 @@ public class DateOprations {
 
     public float getProgress(String Strt, float times) {
 
-        float days = ToDays(CurrentDate) - ToDays(Strt);
+        float days = ToDays(getCurrentDate()) - ToDays(Strt);
 
         Log.d("DAYES", "days : " + days);
 
@@ -53,9 +62,6 @@ public class DateOprations {
     }
 
     public String getCurrentHHmm() {
-
-
-
 
 
         Calendar calendar = Calendar.getInstance();
@@ -83,32 +89,29 @@ public class DateOprations {
 
     public String nextPray(List<String> prayTime) {
         String Current = getCurrentHHmm();
-        Log.d("nextPray", "nextPray: "+Current);
+        Log.d("nextPray", "nextPray: " + Current);
 
         String chh = Current.split(":")[0];
         String Cmm = Current.split(":")[1];
         int current = Integer.valueOf(chh);
         int cmm = Integer.valueOf(Cmm);
-        String nextPray = null;
         for (int i = 0; i < prayTime.size(); i++) {
-            if (i == 1 || i == 3 || i == 7) continue;
+            if (i == 1 || i == 4 || i == 7) continue;
             String phh = prayTime.get(i).split(":")[0];
             int Time = Integer.valueOf(phh);
             int dif = Time - current;
-            Log.d("nextPray", "nextPray: "+dif +"="+ Time +"-"+ current);
+            Log.d("nextPray", "nextPray: " + dif + "=" + Time + "-" + current);
             if (dif > 0) {
                 return prayTime.get(i);
-            } else if (dif==0){
+            } else if (dif == 0) {
                 String mm = prayTime.get(i).split(":")[1];
                 int m = Integer.valueOf(mm);
                 if ((m - cmm) > 0) return prayTime.get(i);
-            }else if (dif<0&&i==6){
-                return prayTime.get(0);
             }
         }
 
 
-        return nextPray;
+        return prayTime.get(0);
     }
 
 }

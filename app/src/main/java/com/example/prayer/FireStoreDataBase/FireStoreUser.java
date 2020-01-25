@@ -99,9 +99,10 @@ public class FireStoreUser {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
                 if (document.exists()) {
-
+                    String startingdate = String.valueOf(document.get("StartingDate"));
                     Log.d(("FireBaseClass"), "DocumentSnapshot data: " + document.getData());
-                    date.setValue(String.valueOf(document.get("StartingDate")));
+
+                    date.setValue(startingdate);
                 } else date.setValue(null);
             }
         });
@@ -123,15 +124,16 @@ public class FireStoreUser {
                     Map<String, Object> old = document.getData();
 
                     int oldTime = Integer.parseInt(String.valueOf(old.get(Name)));
-                    int NewTime = oldTime + 1;
 
-                    old.put(Name, NewTime);
-                    newUser.set(old).addOnSuccessListener(aVoid -> Log.d("updeter", "onSuccess: " + NewTime))
-                            .addOnFailureListener(e -> Log.d("updeter", "onFailuer: " + e));
+                        int NewTime = oldTime + 1;
 
+                        old.put(Name, NewTime);
+                        newUser.set(old).addOnSuccessListener(aVoid -> Log.d("updeter", "onSuccess: " + NewTime))
+                                .addOnFailureListener(e -> Log.d("updeter", "onFailuer: " + e));
 
+                    }
                 }
-            }
+
         });
     }
 

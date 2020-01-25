@@ -19,8 +19,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.perf.FirebasePerformance;
 
-import java.util.Map;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -56,29 +54,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("initializationStatus", initializationStatus.toString());
             Toast.makeText(this, initializationStatus.toString(), Toast.LENGTH_SHORT).show();
         });
-//        InterstitialAd mInterstitialAd = new InterstitialAd(this);
-//        mInterstitialAd.setAdUnitId(getString(R.string.banner_ad_unit_id3));
-//        mInterstitialAd.loadAd(new AdRequest.Builder().build());
-//
-//        mInterstitialAd.setAdListener(new AdListener() {
-//            @Override
-//            public void onAdFailedToLoad(int i) {
-//
-//              //  mInterstitialAd.loadAd(new AdRequest.Builder().build());
-//
-//            }
-//
-//            @Override
-//            public void onAdLoaded() {
-//                super.onAdLoaded();
-//                Log.d("mInterstitialAd", "onAdLoaded : ");
-//
-//                mInterstitialAd.show();
-//            }
-//        });
 
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
                 .build();
@@ -91,11 +67,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private Map<String, Object> getUserInfo() {
+    private void getUserInfo() {
 
         @SuppressLint("HardwareIds") String userID = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
-        return fireStoreUser.CreateDataDocument(userID);
+        fireStoreUser.CreateDataDocument(userID);
     }
 
 

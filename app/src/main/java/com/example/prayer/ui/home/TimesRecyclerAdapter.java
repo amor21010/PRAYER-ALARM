@@ -1,5 +1,6 @@
 package com.example.prayer.ui.home;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
@@ -28,27 +29,25 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
             , R.color.rise
             , R.color.duhr
             , R.color.asr
-            , R.color.set
             , R.color.maghrib
+            , R.color.set
             , R.color.Ishaa
             , R.color.Imsak};
 
     private Context context;
-
+    private OnItemClicked onItemClick;
 
     @NonNull
     @Override
     public TimesVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+
         return new TimesVH(LayoutInflater.from(parent.getContext()).inflate(R.layout.pray_item, parent, false));
     }
 
-    //String TAG = "wwwww";
 
-
+    @SuppressLint("HardwareIds")
     @Override
     public void onBindViewHolder(@NonNull TimesVH holder, int position) {
-
-//         holder.left.setBackgroundColor(COLOR);
 
 
         if (position == 1 || position == 4 || position == 7)
@@ -87,25 +86,25 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
         } else {
             holder.right.setBackgroundColor(Color.parseColor("#ffffff"));
         }
+
     }
+
 
     @Override
     public int getItemCount() {
         return TimesList.size();
     }
 
-    void setList(Context context, List<Pray> TimesList) {
+    void setInfo(Context context, List<Pray> TimesList, OnItemClicked onItemClicked) {
         this.TimesList = TimesList;
         this.context = context;
-
-
-//        this.COLOR=COLOR;
+        this.onItemClick = onItemClicked;
         notifyDataSetChanged();
 
     }
 
 
-    class TimesVH extends RecyclerView.ViewHolder {
+    class TimesVH extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView PrayerName, PrayTime;
         View left, right;
         CheckBox done;
@@ -116,12 +115,28 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
             PrayerName = itemView.findViewById(R.id.prayName);
             PrayTime = itemView.findViewById(R.id.prayTime);
             done = itemView.findViewById(R.id.done);
-
             cardView = itemView.findViewById(R.id.done_card);
             left = itemView.findViewById(R.id.left);
             right = itemView.findViewById(R.id.right);
-
-
+            done.setOnClickListener(this);
+            itemView.setOnClickListener(this);
         }
+
+
+        @Override
+        public void onClick(View v) {
+            onItemClick.onItemClick(getAdapterPosition());
+            done.setChecked(true);
+            done.setEnabled(false);
+            if (itemView.hasOnClickListeners()) {
+                itemView.setOnClickListener(null);
+                done.setOnClickListener(null);
+                notifyItemChanged(getAdapterPosition());
+            }
+        }
+    }
+
+    interface OnItemClicked {
+        void onItemClick(int pos);
     }
 }
