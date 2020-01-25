@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "703792005131",
+    "firebase_url": "https://prayer-53424.firebaseio.com",
+    "project_id": "prayer-53424",
+    "storage_bucket": "prayer-53424.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:703792005131:android:95dd2a9ce63558c839c70e",
+        "android_client_info": {
+          "package_name": "com.example.prayer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "703792005131-p1d6v1ueh0penlbu5nk3tehshtkca8fp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.prayer",
+            "certificate_hash": "c6c9f8560d14a0f076502facd077a82c17d102ce"
+          }
+        },
+        {
+          "client_id": "703792005131-rbk2d6h82dofnlct60opdg397vao6reb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCif5nNGrRsOWdk4kWFRrBE3bZuiygsg_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "703792005131-rbk2d6h82dofnlct60opdg397vao6reb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
