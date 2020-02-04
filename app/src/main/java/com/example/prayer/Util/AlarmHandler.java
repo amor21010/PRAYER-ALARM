@@ -35,7 +35,7 @@ public class AlarmHandler {
 // 20 minutes.
         Objects.requireNonNull(alarmMgr).setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
                 1000 * 60, alarmIntent);
-        context.startActivity(intent);
+        //context.startActivity(intent);
 
     }
 

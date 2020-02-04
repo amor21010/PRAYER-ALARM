@@ -137,7 +137,7 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
 
         // adHandler.showIntAd();
         AlarmHandler alarmHandler = new AlarmHandler(root.getContext());
-        alarmHandler.createAlarm("21:45");
+        alarmHandler.createAlarm("22:11");
 
         return root;
     }
