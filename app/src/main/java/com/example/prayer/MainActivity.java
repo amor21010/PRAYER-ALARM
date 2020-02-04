@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         MobileAds.initialize(this,
-                getString(R.string.app_ad_unit_id));
+                getString(R.string.app_ad_id));
         MobileAds.initialize(this, initializationStatus -> {
             Log.d("initializationStatus", initializationStatus.toString());
             Toast.makeText(this, initializationStatus.toString(), Toast.LENGTH_SHORT).show();
@@ -59,10 +59,13 @@ public class MainActivity extends AppCompatActivity {
                 R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+
+        // keep this comment to remove app bar
+        //NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
         // FirebasePerformance.startTrace()
         FirebasePerformance.getInstance().setPerformanceCollectionEnabled(true);
+        //MediationTestSuite.launch(this);
 
 
     }

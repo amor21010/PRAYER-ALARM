@@ -1,7 +1,10 @@
 package com.example.prayer.ui.home;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -22,14 +26,15 @@ import com.example.prayer.FireStoreDataBase.FireStoreUser;
 import com.example.prayer.Pojo.Pray;
 import com.example.prayer.Pojo.Responce;
 import com.example.prayer.R;
+import com.example.prayer.Util.AdHandler;
+import com.example.prayer.Util.AlarmHandler;
 import com.example.prayer.Util.DateOprations;
-import com.example.prayer.ui.AdHandler;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,7 +63,6 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
 
     private List<Pray> prayTimes = new ArrayList<>();
     private String TAG = "onAdHome";
-    // private LinearLayout disconnected;
 
 
     private HomeViewModel homeViewModel;
@@ -74,7 +78,7 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
 
     private String UserID;
 
-    private AdHandler adHandler = new AdHandler();
+    private AdHandler adHandler = new AdHandler(HomeFragment.this);
 
     private String[] PrayNames = {
             "Fajr"
@@ -103,12 +107,19 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
         root = inflater.inflate(R.layout.fragment_home, container, false);
         ButterKnife.bind(this, root);
 
+        MobileAds.initialize(root.getContext(),
+                getString(R.string.app_ad_id));
+        MobileAds.initialize(root.getContext(), initializationStatus -> {
+            Log.d("initializationStatus", initializationStatus.toString());
+            Toast.makeText(root.getContext(), initializationStatus.toString(), Toast.LENGTH_SHORT).show();
+        });
+
         homeViewModel = new ViewModelProvider.NewInstanceFactory().create(HomeViewModel.class);
         dateOprations = new DateOprations();
-        MobileAds.initialize(root.getContext(), getString(R.string.app_ad_unit_id));
+        MobileAds.initialize(root.getContext(), getString(R.string.app_ad_id));
         MobileAds.initialize(root.getContext(),
                 getString(R.string.banner_ad_unit_id));
-        adHandler.AdRequest(TAG, HomeFragment.this, mAdView);
+        adHandler.AdRequest(mAdView);
 
         UserID = Settings.Secure.getString(root.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 
@@ -120,45 +131,31 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
         recyclerView.setLayoutManager(new LinearLayoutManager(root.getContext()));
         recyclerView.setNestedScrollingEnabled(false);
         recyclerView.setAdapter(adapter);
+        getDataFromApi();
+        // MediationTestSuite.launch(root.getContext());
+        //  adHandler.initilizeUnity();
 
-
-        if (prayTimes.size() > 7) {
-            prayTimes.removeAll(prayTimes);
-            adapter.notifyDataSetChanged();
-            homeViewModel.getData();
-
-            homeViewModel.mResponse.observe(getViewLifecycleOwner(), this::setAdapter);
-
-        } else {
-            homeViewModel.getData();
-            homeViewModel.mResponse.observe(getViewLifecycleOwner(), this::setAdapter);
-
-        }
-
+        // adHandler.showIntAd();
+        AlarmHandler alarmHandler = new AlarmHandler(root.getContext());
+        alarmHandler.createAlarm("21:45");
 
         return root;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
     }
 
 
     @SuppressLint("SetTextI18n")
     private void getData2View(Responce responce) {
 
-
-        //get date Info
-        String DateText = responce.getData().getDate().getReadable();
-        String HijriText = responce.getData().getDate().getHijri().getDate();
-
-        //set date Info To View
-        date.setText(DateText);
-        Hijri.setText(HijriText);
-
-
+        setDateText(responce);
 //get Times
         List<String> Times = getTimes(responce);
 
-
-        String hhmm = dateOprations.nextPray(Times);
-        Log.d("getCurrentHHmm", "getData2View: " + hhmm);
 
         for (int i = 0; i < Times.size(); i++) {
             prayTimes.add(new Pray(Times.get(i), 100, PrayNames[i]));
@@ -168,12 +165,7 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
         for (int i = 0; i < prayTimes.size(); i++) {
             getLiveProgress(i);
         }
-        String Name = prayTimes.get(Times.lastIndexOf(hhmm)).getName();
-        nextTime.setText(Name + " (" + hhmm + ")");
-        DateCardView.setCardBackgroundColor(ContextCompat
-                .getColor(Objects.requireNonNull(HomeFragment.this.getContext())
-                        , backgroundColor[Times.lastIndexOf(hhmm)]));
-
+        setNextPrayText(Times);
 
     }
 
@@ -186,6 +178,7 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
         String MaghribTime = responce.getData().getTimings().getMaghrib();
         String IshaTime = responce.getData().getTimings().getIsha();
         String IImsakTime = responce.getData().getTimings().getImsak();
+
 
 //TODO update progress
         //set times to the list
@@ -221,12 +214,12 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
         String Name = prayTimes.get(index).getName();
 
 
-        fireStoreUser.getStartTime(UserID).observe(HomeFragment.this, startDay ->
+        fireStoreUser.getStartTime(UserID).observe(getViewLifecycleOwner(), startDay ->
 
         {
             if (startDay != null) {
 
-                fireStoreUser.getTimesDone(UserID, Name).observe(HomeFragment.this, timesDone -> {
+                fireStoreUser.getTimesDone(UserID, Name).observe(getViewLifecycleOwner(), timesDone -> {
                     if (timesDone != null) {
                         float porgress = dateOprations.getProgress(startDay, timesDone);
 
@@ -251,26 +244,134 @@ public class HomeFragment extends Fragment implements TimesRecyclerAdapter.OnIte
 
         String Name = prayTimes.get(index).getName();
         Log.d("onItemClick", prayTimes.get(index).getName());
-        fireStoreUser.getStartTime(UserID).observe(HomeFragment.this, startDay ->
 
-        {
-            if (startDay != null) {
+        //Checking ShardPreference if Once a day
+        //if d
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(root.getContext());
+        String lastTimeStarted = settings.getString("last_time_started" + Name, null);
+        Calendar calendar = Calendar.getInstance();
+        String today = String.valueOf(calendar.get(Calendar.DAY_OF_YEAR));
+        Log.d("last_time_started", "onItem: " + lastTimeStarted + "=" + index);
+        if (!today.equals(lastTimeStarted)) {
+            //startSomethingOnce();
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("last_time_started" + Name, today);
 
-                fireStoreUser.getTimesDone(UserID, Name).observe(HomeFragment.this, timesDone -> {
-                    if (timesDone != null) {
-                        float porgress = dateOprations.getProgress(startDay, timesDone);
-                        if (porgress < 100) {
-                            Log.d("onItemClick", "onItemClick: update");
-                            fireStoreUser.markAsDone(UserID, Name);
-                            getLiveProgress(index);
-                        } else {
-                            Log.d("onItemClick", "onItemClick: notUpdate");
+            editor.apply();
+            fireStoreUser.getStartTime(UserID).observe(HomeFragment.this, startDay ->
+
+            {
+                if (startDay != null) {
+                    fireStoreUser.getTimesDone(UserID, Name).observe(HomeFragment.this, timesDone -> {
+                        if (timesDone != null) {
+                            float porgress = dateOprations.getProgress(startDay, timesDone);
+                            if (porgress < 100) {
+                                Log.d("onItemClick", "onItemClick: update");
+                                fireStoreUser.markAsDone(UserID, Name);
+                                getLiveProgress(index);
+                            } else {
+                                Log.d("onItemClick", "onItemClick: notUpdate");
+                            }
                         }
-                    }
-                });
+                    });
+                }
+            });
+        }
+    }
+
+    private String storeNextpray(List<String> Times) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(root.getContext());
+        String lastTimeStarted = settings.getString("last_next_Pray", null);
+        String newNxtPray = dateOprations.nextPray(Times);
+        if (!newNxtPray.equals(lastTimeStarted)) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("last_next_Pray", newNxtPray);
+            editor.apply();
+
+            return newNxtPray;
+        } else
+            return lastTimeStarted;
+    }
+
+
+    private String todayInMeladi(Responce responce) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(root.getContext());
+        String lastTimeStarted = settings.getString("last_Day", null);
+        String DateText = responce.getData().getDate().getReadable();
+        if (!DateText.equals(lastTimeStarted)) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("last_Day", DateText);
+            editor.apply();
+            return DateText;
+        } else
+            return lastTimeStarted;
+    }
+
+    private String todayInHijri(Responce responce) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(root.getContext());
+        String lastTimeHijri = settings.getString("last_Day_Hijri", null);
+        String HijriText = responce.getData().getDate().getHijri().getDate();
+
+        if (!HijriText.equals(lastTimeHijri)) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("last_Day", HijriText);
+            editor.apply();
+            return HijriText;
+        } else
+            return lastTimeHijri;
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void setNextPrayText(List<String> Times) {
+        String hhmm = storeNextpray(Times);
+        String Name = prayTimes.get(Times.lastIndexOf(hhmm)).getName();
+        Log.d("setNextPrayText", "setNextPrayText: " + Name + "==" + hhmm);
+        if (!String.valueOf(nextTime.getText()).contains(Name)) {
+            nextTime.setText(Name + " (" + hhmm + ")");
+            DateCardView.setCardBackgroundColor(ContextCompat
+                    .getColor(Objects.requireNonNull(HomeFragment.this.getContext())
+                            , backgroundColor[Times.lastIndexOf(hhmm)]));
+
+        }
+
+        new Handler().postDelayed(() -> setNextPrayText(Times), 30000);
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void setDateText(Responce responce) {
+        String DateText = todayInMeladi(responce);
+        String HijriText = todayInHijri(responce);
+
+
+        Log.d("setNextPrayText", "setNextPrayText: " + DateText + "==" + HijriText);
+        if (!String.valueOf(date.getText()).contains(DateText)) {
+            date.setText(DateText);
+            Hijri.setText(HijriText);
+        }
+
+        new Handler().postDelayed(() -> {
+            getDataFromApi();
+            setDateText(responce);
+
+        }, 60000);
+    }
+
+    @SuppressLint("FragmentLiveDataObserve")
+    private void getDataFromApi() {
+        homeViewModel.getData();
+        Log.d(TAG, "getDataFromApi: ");
+        homeViewModel.mResponse.observe(HomeFragment.this, response -> {
+            if (prayTimes.size() != 0) {
+
+                if (!response.getData().getTimings().getFajr().equals(prayTimes.get(0).getTime())) {
+                    Log.d(TAG, "getDataFromApi: changing");
+                    setAdapter(response);
+                    adapter.notifyDataSetChanged();
+                }
+
+            } else {
+                setAdapter(response);
             }
         });
-
-
     }
 }

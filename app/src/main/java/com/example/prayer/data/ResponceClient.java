@@ -4,6 +4,7 @@ import com.example.prayer.Pojo.Responce;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -39,7 +40,7 @@ public class ResponceClient {
         return INICTANCE;
     }
 
-    public Flowable<Responce> getData(String City,int method) {
+    public Single<Responce> getData(String City, int method) {
         return prayerInterface.getPrayerTimes(City,method);
     }
 }

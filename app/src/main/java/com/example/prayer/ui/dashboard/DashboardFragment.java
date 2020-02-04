@@ -15,7 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.prayer.FireStoreDataBase.FireStoreUser;
 import com.example.prayer.R;
-import com.example.prayer.ui.AdHandler;
+import com.example.prayer.Util.AdHandler;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
@@ -37,6 +37,9 @@ public class DashboardFragment extends Fragment {
         Log.d(TAG, "onCreateView: " + userID);
         if (userID != null)
             textView.setText(userID);
+
+        //   MediationTestSuite.launch(root.getContext());
+
         return root;
     }
 
@@ -48,7 +51,7 @@ public class DashboardFragment extends Fragment {
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
 
-        new AdHandler().AdRequest(TAG, DashboardFragment.this, mAdView);
+        new AdHandler(DashboardFragment.this).AdRequest(mAdView);
 
 
     }

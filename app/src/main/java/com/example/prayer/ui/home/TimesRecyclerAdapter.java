@@ -2,8 +2,11 @@ package com.example.prayer.ui.home;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +23,7 @@ import com.example.prayer.Pojo.Pray;
 import com.example.prayer.R;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdapter.TimesVH> {
@@ -36,6 +40,7 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
 
     private Context context;
     private OnItemClicked onItemClick;
+    private List<String> Times = new ArrayList<>();
 
     @NonNull
     @Override
@@ -50,11 +55,21 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
     public void onBindViewHolder(@NonNull TimesVH holder, int position) {
 
 
-        if (position == 1 || position == 4 || position == 7)
+        if (position == 1 || position == 4 || position == 7) {
             holder.cardView.setVisibility(View.GONE);
-
+            holder.disable();
+        }
         Pray pray = TimesList.get(position);
 
+        for (int i = 0; i < TimesList.size(); i++)
+            try {
+                Times.set(position, pray.getTime());
+                Log.d("NextPray", "onBindViewHolder: set " + i + "=" + Times.get(i));
+
+            } catch (Exception e) {
+                Times.add(position, pray.getTime());
+                Log.d("NextPray", "onBindViewHolder: add" + i + "=" + Times.get(i));
+            }
 
         float x = pray.getProgress();
 
@@ -87,8 +102,41 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
             holder.right.setBackgroundColor(Color.parseColor("#ffffff"));
         }
 
-    }
 
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+
+//check if checked once a day
+        String lastTimeStarted = settings.getString("last_time_started" + TimesList.get(position).getName(), null);
+        Calendar calendar = Calendar.getInstance();
+        String today = String.valueOf(calendar.get(Calendar.DAY_OF_YEAR));
+        if (today.equals(lastTimeStarted)) {
+            Log.d("last_time_started", "TimesVH: if " + lastTimeStarted + " =" + position);
+            holder.disable();
+        }
+//disable to mark prays
+        String nextPrayTime = settings.getString("last_next_Pray", null);
+        Log.d("NextPray", "onBindViewHolder next: " + nextPrayTime);
+        if (position >= Times.lastIndexOf(nextPrayTime) && Times.lastIndexOf(nextPrayTime) != 0) {
+            Log.d("NextPray", "onBindViewHolder pose: " + position + "=" + Times.lastIndexOf(nextPrayTime));
+
+            holder.disable();
+        }
+        //     Log.d("NextPray", "onBindViewHolder pose: " + position + "=" + Times.lastIndexOf(nextPrayTime) + "hour" + Integer.valueOf(Times.get(0).split(":")[0]) + "=" + calendar.get(Calendar.HOUR_OF_DAY));
+
+
+        // check if next pray is fajr and if now is before or after midnight
+        if (Times.lastIndexOf(nextPrayTime) == 0//if next pray is fajr
+                &&
+                calendar.get(Calendar.HOUR_OF_DAY)//now hour
+                        <
+                        Integer.valueOf(Times.get(0).split(":")[0])) //fajr hour
+        {
+            Log.d("NextPray", "onBindViewHolder f: " + position + "=" + Times.lastIndexOf(nextPrayTime) + "hour" + Integer.valueOf(Times.get(0).split(":")[0]) + "=" + calendar.get(Calendar.HOUR_OF_DAY));
+
+
+            holder.disable();
+        }
+    }
 
     @Override
     public int getItemCount() {
@@ -100,9 +148,13 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
         this.context = context;
         this.onItemClick = onItemClicked;
         notifyDataSetChanged();
-
     }
 
+
+    interface OnItemClicked {
+
+        void onItemClick(int pos);
+    }
 
     class TimesVH extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView PrayerName, PrayTime;
@@ -120,23 +172,39 @@ public class TimesRecyclerAdapter extends RecyclerView.Adapter<TimesRecyclerAdap
             right = itemView.findViewById(R.id.right);
             done.setOnClickListener(this);
             itemView.setOnClickListener(this);
+
+
         }
 
 
         @Override
         public void onClick(View v) {
-            onItemClick.onItemClick(getAdapterPosition());
+
+
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+
+            String lastTimeStarted = settings.getString("last_time_started" + TimesList.get(getAdapterPosition()).getName(), null);
+            Calendar calendar = Calendar.getInstance();
+            String today = String.valueOf(calendar.get(Calendar.DAY_OF_YEAR));
+            Log.d("last_time_started", "TimesVH: " + lastTimeStarted + " =" + getAdapterPosition());
+            if (!today.equals(lastTimeStarted)) {
+                Log.d("last_time_started", "TimesVH: if " + lastTimeStarted + " =" + getAdapterPosition());
+                onItemClick.onItemClick(getAdapterPosition());
+            }
+
+
+        }
+
+        void disable() {
+            Log.d("tttttt", "disable: dis" + getAdapterPosition() + "=" + TimesList.size());
             done.setChecked(true);
             done.setEnabled(false);
             if (itemView.hasOnClickListeners()) {
                 itemView.setOnClickListener(null);
                 done.setOnClickListener(null);
-                notifyItemChanged(getAdapterPosition());
             }
         }
-    }
 
-    interface OnItemClicked {
-        void onItemClick(int pos);
+
     }
 }

@@ -1,5 +1,6 @@
 package com.example.prayer.ui.home;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -9,6 +10,8 @@ import com.example.prayer.Pojo.Responce;
 import com.example.prayer.data.ResponceClient;
 
 import io.reactivex.Observer;
+import io.reactivex.Single;
+import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -18,33 +21,15 @@ public class HomeViewModel extends ViewModel {
     MutableLiveData<Responce> mResponse = new MutableLiveData<>();
 
 
+    @SuppressLint("CheckResult")
     void getData() {
+
         ResponceClient.getINICTANCE().getData("cairo", 5)
-                .toObservable()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Responce>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
+                .subscribe(responce -> mResponse.setValue(responce)
+                        , e -> Log.d(TAG, "on " + e));
 
-                    }
-
-                    @Override
-                    public void onNext(Responce responce) {
-                        mResponse.setValue(responce);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e(TAG, "onError: ", e);
-                        mResponse.setValue(null);
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
     }
 
 

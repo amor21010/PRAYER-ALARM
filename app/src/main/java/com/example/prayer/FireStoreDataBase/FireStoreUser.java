@@ -1,29 +1,22 @@
 package com.example.prayer.FireStoreDataBase;
 
-import android.annotation.SuppressLint;
-import android.os.Build;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.prayer.Util.DateOprations;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class FireStoreUser {
-    DateOprations dateOps = new DateOprations();
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    CollectionReference users = db.collection("users");
+    private DateOprations dateOps = new DateOprations();
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private CollectionReference users = db.collection("users");
 
     public FireStoreUser() {
 
@@ -31,32 +24,20 @@ public class FireStoreUser {
     }
 
 
-    private String userID;
-    private String chalngeDateCount;
     private String Start;
 
 
-    public String getChalngeDateCount() {
-        return chalngeDateCount;
-    }
-
-    public void setChalngeDateCount(String chalngeDateCount) {
-        this.chalngeDateCount = chalngeDateCount;
-    }
-
-    public String getUserID() {
-        return userID;
-    }
-
-    public void setUserID(String userID) {
-        this.userID = userID;
-    }
-
-
     public Map<String, Object> CreateDataDocument(String userID) {
-        Start = java.text.DateFormat.getDateTimeInstance().format(new Date());
+        Start = dateOps.getCurrentDate();
         Map<String, Object> user = new HashMap<>();
-
+        user.put("userID", userID);
+        user.put("StartingDate", Start);
+        user.put("chalngeDateCount", 50);
+        user.put("Fajr", 0);
+        user.put("Duhr", 0);
+        user.put("Asr", 0);
+        user.put("Maghrib", 0);
+        user.put("Isha", 0);
 
         CollectionReference users = db.collection("users");
 
@@ -65,15 +46,8 @@ public class FireStoreUser {
         newUser.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
-                if (!document.exists()) {
-                    user.put("userID", userID);
-                    user.put("StartingDate", Start);
-                    user.put("chalngeDateCount", 0);
-                    user.put("Fajr", 0);
-                    user.put("Duhr", 0);
-                    user.put("Asr", 0);
-                    user.put("Maghrib", 0);
-                    user.put("Isha", 0);
+                if (document != null && !document.exists()) {
+
                     newUser.set(user).addOnSuccessListener(aVoid -> Log.d("FireBaseClass", "onSuccess: "))
                             .addOnFailureListener(e -> Log.d("FireBaseClass", "onFailure: " + e));
                 }
@@ -98,12 +72,14 @@ public class FireStoreUser {
         newUser.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
-                if (document.exists()) {
-                    String startingdate = String.valueOf(document.get("StartingDate"));
-                    Log.d(("FireBaseClass"), "DocumentSnapshot data: " + document.getData());
+                if (document != null) {
+                    if (document.exists()) {
+                        String startingdate = String.valueOf(document.get("StartingDate"));
+                        Log.d(("FireBaseClass"), "DocumentSnapshot data: " + document.getData());
 
-                    date.setValue(startingdate);
-                } else date.setValue(null);
+                        date.setValue(startingdate);
+                    } else date.setValue(null);
+                }
             }
         });
 
@@ -119,20 +95,25 @@ public class FireStoreUser {
         newUser.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
-                if (document.exists()) {
+                if (document != null && document.exists()) {
 
                     Map<String, Object> old = document.getData();
 
-                    int oldTime = Integer.parseInt(String.valueOf(old.get(Name)));
-
-                        int NewTime = oldTime + 1;
-
-                        old.put(Name, NewTime);
-                        newUser.set(old).addOnSuccessListener(aVoid -> Log.d("updeter", "onSuccess: " + NewTime))
-                                .addOnFailureListener(e -> Log.d("updeter", "onFailuer: " + e));
-
+                    int oldTime = 0;
+                    if (old != null) {
+                        oldTime = Integer.parseInt(String.valueOf(old.get(Name)));
                     }
+
+                    int NewTime = oldTime + 1;
+
+                    if (old != null) {
+                        old.put(Name, NewTime);
+                    }
+                    newUser.set(old).addOnSuccessListener(aVoid -> Log.d("updeter", "onSuccess: " + NewTime))
+                            .addOnFailureListener(e -> Log.d("updeter", "onFailuer: " + e));
+
                 }
+            }
 
         });
     }
@@ -146,12 +127,14 @@ public class FireStoreUser {
         newUser.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
-                if (document.exists()) {
+                if (document != null) {
+                    if (document.exists()) {
 
-                    Log.d(("FireBaseClass"), "DocumentSnapshot data: " + document.getData());
-                    if (document.get(name) != null)
-                        date.setValue(Integer.valueOf(String.valueOf(document.get(name))));
-                } else date.setValue(100);
+                        Log.d(("FireBaseClass"), "DocumentSnapshot data: " + document.getData());
+                        if (document.get(name) != null)
+                            date.setValue(Integer.valueOf(String.valueOf(document.get(name))));
+                    } else date.setValue(100);
+                }
             }
         });
 

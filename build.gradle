@@ -32,9 +32,8 @@ allprojects {
         jcenter()
 
         maven {
-            url  "https://adcolony.bintray.com/AdColony"
+            url "https://adcolony.bintray.com/AdColony"
         }
-
 
     }
 }

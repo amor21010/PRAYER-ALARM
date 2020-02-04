@@ -14,7 +14,7 @@ public class DateOprations {
     public static final String DATE_FORMAT_2 = "MMM DD, yyyy";
 
     @SuppressLint("SimpleDateFormat")
-    public  String getCurrentDate() {
+    public String getCurrentDate() {
 
         Date today = Calendar.getInstance().getTime();
         SimpleDateFormat dmy = new SimpleDateFormat(DATE_FORMAT_2);
@@ -36,8 +36,6 @@ public class DateOprations {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-
         long seconds = 0;
         seconds = newDate.getTime() / 1000;
 
