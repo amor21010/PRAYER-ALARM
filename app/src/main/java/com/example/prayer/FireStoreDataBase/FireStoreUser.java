@@ -1,5 +1,6 @@
 package com.example.prayer.FireStoreDataBase;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -14,14 +15,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FireStoreUser {
-    private DateOprations dateOps = new DateOprations();
+
+    Context context ;
+
+    public FireStoreUser(Context context) {
+        this.context = context;
+    }
+
+    private DateOprations dateOps = new DateOprations(context);
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference users = db.collection("users");
-
-    public FireStoreUser() {
-
-
-    }
 
 
     private String Start;

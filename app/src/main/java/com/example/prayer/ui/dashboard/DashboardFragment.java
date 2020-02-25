@@ -23,6 +23,7 @@ public class DashboardFragment extends Fragment {
     private String TAG = "OnAdDash";
     private DashboardViewModel dashboardViewModel;
     private View root;
+    AdView mAdView;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -44,14 +45,13 @@ public class DashboardFragment extends Fragment {
     }
 
     private void ViewAds() {
-        AdView mAdView;
 
 
         mAdView = root.findViewById(R.id.adView2);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
 
-        new AdHandler(DashboardFragment.this).AdRequest(mAdView);
+        new AdHandler(mAdView, root.getContext(), DashboardFragment.this).AdRequest();
 
 
     }
@@ -60,8 +60,22 @@ public class DashboardFragment extends Fragment {
     private String getUserInfo() {
 
         @SuppressLint("HardwareIds") String userID = Settings.Secure.getString(root.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
-        FireStoreUser fireStoreUser = new FireStoreUser();
+        FireStoreUser fireStoreUser = new FireStoreUser(root.getContext());
         return String.valueOf(fireStoreUser.CreateDataDocument(userID).get("userID"));
+    }
+
+    @Override
+    public void onPause() {
+
+        super.onPause();
+        mAdView.pause();
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mAdView.resume();
     }
 
 

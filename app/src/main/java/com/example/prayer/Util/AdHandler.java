@@ -1,5 +1,6 @@
 package com.example.prayer.Util;
 
+import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
@@ -13,90 +14,94 @@ import com.google.android.gms.ads.InterstitialAd;
 import com.unity3d.ads.IUnityAdsListener;
 import com.unity3d.ads.UnityAds;
 
-import java.util.Objects;
-
 public class AdHandler {
-
-
+    private AdView adView;
+    private Context context;
     private Fragment owner;
 
-    public AdHandler(Fragment owner) {
+    public AdHandler(AdView adView, Context context, Fragment owner) {
+        this.adView = adView;
+        this.context = context;
         this.owner = owner;
     }
 
-    public void AdRequest(AdView adView) {
+    public void AdRequest() {
 
-        adView.loadAd(new AdRequest.Builder().build());
+
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
+
         adView.setAdListener(new AdListener() {
+
             @Override
             public void onAdFailedToLoad(int i) {
                 super.onAdFailedToLoad(i);
                 Log.d("shoIntAd", "onAdFailedToLoad: onDestroy " + i);
-                AdRequest(adView);
+                AdRequest();
 
             }
 
             @Override
             public void onAdLoaded() {
                 super.onAdLoaded();
-                Log.d("dddddd", "onAdFailedToLoad: onDestroy " + adView.getMediationAdapterClassName());
-                showIntAd();
+                //     Log.d("dddddd", "onAdFailedToLoad: onDestroy " + adView.getMediationAdapterClassName());
+
+                new Handler().postDelayed(() -> showIntAd(), 10000);
             }
         });
 
-        // initilizeUnity();
+        // initializeUnity();
 
     }
 
-    public void showIntAd() {
-        Log.d("shoIntAd", "onDestroy: ");
+    private void showIntAd() {
+        Log.d("shoInterAd", "onDestroy: ");
         InterstitialAd mInterstitialAd;
-        mInterstitialAd = new InterstitialAd(Objects.requireNonNull(owner.getContext()));
-        mInterstitialAd.setAdUnitId(owner.getString(R.string.banner_ad_unit_id3));
+        mInterstitialAd = new InterstitialAd(context);
+        mInterstitialAd.setAdUnitId(context.getString(R.string.int_ad_unit_id3));
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
-        mInterstitialAd.show();
         mInterstitialAd.setAdListener(new AdListener() {
-                                          @Override
-                                          public void onAdFailedToLoad(int i) {
-                                              Log.d("shoIntAd", "onAdFailedToLoad: onDestroy " + i);
-                                              new Handler().postDelayed(() -> {
-                                                  mInterstitialAd.loadAd(new AdRequest.Builder().build());
-                                                  mInterstitialAd.show();
-                                              }, 100);
-
-                                          }
-                                      }
-        );
-    }
-
-    public void initilizeUnity() {
-
-        UnityAds.initialize(owner.getActivity(), "3437179", new IUnityAdsListener() {
             @Override
-            public void onUnityAdsReady(String placementId) {
-                UnityAds.show(owner.getActivity());
+            public void onAdLoaded() {
+                super.onAdLoaded();
+                mInterstitialAd.show();
             }
 
             @Override
-            public void onUnityAdsStart(String placementId) {
-
-            }
-
-            @Override
-            public void onUnityAdsFinish(String placementId, UnityAds.FinishState result) {
-
-            }
-
-            @Override
-            public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
-                Log.d("UnityADs", "initilizeUnity: " + error + "=" + message);
-
-
+            public void onAdFailedToLoad(int i) {
+                super.onAdFailedToLoad(i);
+                new Handler().postDelayed(() -> initializeUnity(), 10000);
             }
         });
 
-        Log.d("UnityADs", "initilizeUnity: " + UnityAds.isReady());
-        new Handler().
-                postDelayed(this::initilizeUnity, 6000);
+    }
+
+    private void initializeUnity() {
+
+        UnityAds.initialize(owner.getActivity()
+                , context.getString(R.string.uinty_game_id)
+                , new IUnityAdsListener() {
+                    @Override
+                    public void onUnityAdsReady(String placementId) {
+                        UnityAds.show(owner.getActivity(), placementId);
+                    }
+
+                    @Override
+                    public void onUnityAdsStart(String placementId) {
+                        adView.pause();
+                    }
+
+                    @Override
+                    public void onUnityAdsFinish(String placementId, UnityAds.FinishState result) {
+                        adView.resume();
+                    }
+
+                    @Override
+                    public void onUnityAdsError(UnityAds.UnityAdsError error, String message) {
+                        Log.d("instadd", "unity" + error + "=" + message);
+                        new Handler().postDelayed(() -> AdRequest(), 10000);
+                    }
+
+                });
     }
 }

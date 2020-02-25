@@ -40,7 +40,7 @@ public class ResponceClient {
         return INICTANCE;
     }
 
-    public Single<Responce> getData(String City, int method) {
+    public Flowable<Responce> getData(String City, int method) {
         return prayerInterface.getPrayerTimes(City,method);
     }
 }

@@ -8,8 +8,9 @@
     <string name="title_notifications">Notifications</string>
     <string name="banner_ad_unit_id">ca-app-pub-4178699745693851/2310014473</string>
     <string name="banner_ad_unit_id2">ca-app-pub-4178699745693851/6804503698</string>
-    <string name="banner_ad_unit_id3">ca-app-pub-4178699745693851/6815062234</string>
+    <string name="int_ad_unit_id3">ca-app-pub-4178699745693851/6815062234</string>
     <string name="app_ad_id">ca-app-pub-4178699745693851~5127749506</string>
+    <string name="uinty_game_id">"3437179"</string>
     <string name="done">Done ?</string>
     <string name="date">Date</string>
     <string name="dots"> : </string>

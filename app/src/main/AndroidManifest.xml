@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.SET_ALARM" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
 
@@ -24,25 +25,28 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning,UnusedAttribute">
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/app_ad_id" />
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="@string/app_ad_id" />
-        <meta-data
             android:name="firebase_performance_logcat_enabled"
             android:value="true" />
 
 
-        <receiver android:name=".Util.AlarmReceiver"
-            android:process=":remote"/>
+        <receiver
+            android:name=".Util.AlarmReceiver"
+            android:process=":remote" />
     </application>
 
 </manifest>

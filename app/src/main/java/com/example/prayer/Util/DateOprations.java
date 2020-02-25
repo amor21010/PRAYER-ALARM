@@ -1,7 +1,12 @@
 package com.example.prayer.Util;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.example.prayer.Pojo.Responce;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,7 +16,16 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class DateOprations {
+
+
+    Context context;
+
+    public DateOprations(Context context) {
+        this.context = context;
+    }
+
     public static final String DATE_FORMAT_2 = "MMM DD, yyyy";
+
 
     @SuppressLint("SimpleDateFormat")
     public String getCurrentDate() {
@@ -85,7 +99,7 @@ public class DateOprations {
     }
 
 
-    public String nextPray(List<String> prayTime) {
+     String nextPray(List<String> prayTime) {
         String Current = getCurrentHHmm();
         Log.d("nextPray", "nextPray: " + Current);
 
@@ -111,5 +125,48 @@ public class DateOprations {
 
         return prayTime.get(0);
     }
+
+    public String todayInMeladi(Responce responce) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        String lastTimeStarted = settings.getString("last_Day", null);
+        String DateText = responce.getData().getDate().getReadable();
+        if (!DateText.equals(lastTimeStarted)) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("last_Day", DateText);
+            editor.apply();
+            return DateText;
+        } else
+            return lastTimeStarted;
+    }
+
+
+    public String todayInHijri(Responce responce) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        String lastTimeHijri = settings.getString("last_Day_Hijri", null);
+        String HijriText = responce.getData().getDate().getHijri().getDate();
+
+        if (!HijriText.equals(lastTimeHijri)) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("last_Day", HijriText);
+            editor.apply();
+            return HijriText;
+        } else
+            return lastTimeHijri;
+    }
+    public String storedNextPray(List<String> Times) {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+        String lastTimeStarted = settings.getString("last_next_Pray", null);
+        String newNxtPray = nextPray(Times);
+        if (!newNxtPray.equals(lastTimeStarted)) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("last_next_Pray", newNxtPray);
+            editor.apply();
+
+            return newNxtPray;
+        } else
+            return lastTimeStarted;
+    }
+
+
 
 }

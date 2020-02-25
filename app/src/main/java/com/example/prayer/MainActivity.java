@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        fireStoreUser = new FireStoreUser();
+        fireStoreUser = new FireStoreUser(this);
         getUserInfo();
 
 
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
 
-        // keep this comment to remove app bar
+        // keep this commented to remove app bar
         //NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
         // FirebasePerformance.startTrace()
